@@ -66,6 +66,7 @@
 	$update_intervals = array(
 		0   => __("Default interval"),
 		-1  => __("Disable updates"),
+		5   => __("5 minutes"),
 		15  => __("15 minutes"),
 		30  => __("30 minutes"),
 		60  => __("Hourly"),
@@ -76,6 +77,7 @@
 
 	$update_intervals_nodefault = array(
 		-1  => __("Disable updates"),
+		5   => __("5 minutes"),
 		15  => __("15 minutes"),
 		30  => __("30 minutes"),
 		60  => __("Hourly"),
