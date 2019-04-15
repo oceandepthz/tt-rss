@@ -294,6 +294,9 @@
 			if  ($http_referrer)
 				curl_setopt($ch, CURLOPT_REFERER, $http_referrer);
 
+                        curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
+                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
 			if ($max_size) {
 				curl_setopt($ch, CURLOPT_NOPROGRESS, false);
 				curl_setopt($ch, CURLOPT_BUFFERSIZE, 16384); // needed to get 5 arguments in progress function?
@@ -1388,6 +1391,8 @@
 		if ($_SESSION['hasSandbox']) $allowed_elements[] = 'iframe';
 
 		$disallowed_attributes = array('id', 'style', 'class', 'width', 'height', 'allow');
+		$disallowed_attributes = [];
+                array_push($allowed_elements, 'newselement', 'style', 'svg', 'rb', 'lazy-image');
 
 		foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_SANITIZE) as $plugin) {
 			$retval = $plugin->hook_sanitize($doc, $site_url, $allowed_elements, $disallowed_attributes, $article_id);
