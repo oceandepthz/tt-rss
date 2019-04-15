@@ -154,7 +154,7 @@
 	require_once 'version.php';
 	require_once 'controls.php';
 
-	define('SELF_USER_AGENT', 'Tiny Tiny RSS/' . VERSION . ' (http://tt-rss.org/)');
+        define_default('SELF_USER_AGENT', 'Tiny Tiny RSS/' . VERSION . ' (http://tt-rss.org/)');
 	ini_set('user_agent', SELF_USER_AGENT);
 
 	$schema_version = false;
@@ -277,6 +277,9 @@
 
 			if  ($http_referrer)
 				curl_setopt($ch, CURLOPT_REFERER, $http_referrer);
+
+                        curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
+                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
 			if ($max_size) {
 				curl_setopt($ch, CURLOPT_NOPROGRESS, false);
@@ -1376,7 +1379,8 @@
 
 		if ($_SESSION['hasSandbox']) $allowed_elements[] = 'iframe';
 
-		$disallowed_attributes = array('id', 'style', 'class');
+		$disallowed_attributes = [];
+                array_push($allowed_elements, 'newselement', 'style', 'svg', 'rb', 'lazy-image');
 
 		foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_SANITIZE) as $plugin) {
 			$retval = $plugin->hook_sanitize($doc, $site_url, $allowed_elements, $disallowed_attributes, $article_id);
