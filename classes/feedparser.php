@@ -17,6 +17,9 @@ class FeedParser {
 		if (preg_match('/^(<\?xml[\t\n\r ].*?encoding[\t\n\r ]*=[\t\n\r ]*["\'])(.+?)(["\'].*?\?>)/s', $data, $matches) === 1) {
 
 			$encoding = strtolower($matches[2]);
+                        if($encoding == 'shift_jis'){
+                                $encoding = 'sjis';
+                        }
 
 			if (in_array($encoding, array_map('strtolower', mb_list_encodings())))
 				$data = mb_convert_encoding($data, 'UTF-8', $encoding);
