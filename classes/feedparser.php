@@ -33,6 +33,7 @@ class FeedParser {
 	function __construct($data) {
 		libxml_use_internal_errors(true);
 		libxml_clear_errors();
+                $data = str_replace('&nbsp;','&#160;', $data);
 		$this->doc = new DOMDocument();
 		$this->doc->loadXML($data);
 
