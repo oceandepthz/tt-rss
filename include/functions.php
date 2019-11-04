@@ -1,6 +1,6 @@
 <?php
 	define('EXPECTED_CONFIG_VERSION', 26);
-	define('SCHEMA_VERSION', 138);
+	define('SCHEMA_VERSION', 139);
 
 	define('LABEL_BASE_INDEX', -1024);
 	define('PLUGIN_FEED_BASE_INDEX', -128);
@@ -512,7 +512,7 @@
 		return "";
 	}
 
-	function authenticate_user($login, $password, $check_only = false) {
+	function authenticate_user($login, $password, $check_only = false, $service = false) {
 
 		if (!SINGLE_USER_MODE) {
 			$user_id = false;
@@ -520,7 +520,7 @@
 
 			foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_AUTH_USER) as $plugin) {
 
-				$user_id = (int) $plugin->authenticate($login, $password);
+				$user_id = (int) $plugin->authenticate($login, $password, $service);
 
 				if ($user_id) {
 					$auth_module = strtolower(get_class($plugin));

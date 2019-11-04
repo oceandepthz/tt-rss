@@ -395,6 +395,30 @@ class Pref_Prefs extends Handler_Protected {
 			print "</form>";
 
 			print "</div>"; # content pane
+
+			if ($_SESSION["auth_module"] == "auth_internal") {
+
+				print "<div dojoType='dijit.layout.ContentPane' title=\"" . __('App passwords') . "\">";
+
+				print_notice("You can create separate passwords for the API clients. Using one is required if you enable OTP.");
+
+				print "<div id='app_passwords_holder'>";
+				$this->appPasswordList();
+				print "</div>";
+
+				print "<hr>";
+
+				print "<button style='float : left' class='alt-primary' dojoType='dijit.form.Button'
+					onclick=\"Helpers.AppPasswords.generate()\">" .
+					__('Generate new password') . "</button> ";
+
+				print "<button style='float : left' class='alt-danger' dojoType='dijit.form.Button'
+					onclick=\"Helpers.AppPasswords.removeSelected()\">" .
+					__('Remove selected passwords') . "</button>";
+
+				print "</div>"; # content pane
+			}
+
 			print "<div dojoType='dijit.layout.ContentPane' title=\"".__('One time passwords / Authenticator')."\">";
 
 			if ($_SESSION["auth_module"] == "auth_internal") {
@@ -439,16 +463,29 @@ class Pref_Prefs extends Handler_Protected {
 
 					print "</form>";
 
-				} else if (function_exists("imagecreatefromstring")) {
+				} else {
 
 					print_warning("You will need a compatible Authenticator to use this. Changing your password would automatically disable OTP.");
-					print_notice("Scan the following code by the Authenticator application:");
+					print_notice("You will need to generate app passwords for the API clients if you enable OTP.");
 
-					$csrf_token = $_SESSION["csrf_token"];
+					if (function_exists("imagecreatefromstring")) {
+						print "<h3>" . __("Scan the following code by the Authenticator application or copy the key manually") . "</h3>";
 
-					print "<img alt='otp qr-code' src='backend.php?op=pref-prefs&method=otpqrcode&csrf_token=$csrf_token'>";
+						$csrf_token = $_SESSION["csrf_token"];
+						print "<img alt='otp qr-code' src='backend.php?op=pref-prefs&method=otpqrcode&csrf_token=$csrf_token'>";
+					} else {
+						print_error("PHP GD functions are required to generate QR codes.");
+						print "<h3>" . __("Use the following OTP key with a compatible Authenticator application") . "</h3>";
+					}
 
 					print "<form dojoType='dijit.form.Form' id='changeOtpForm'>";
+
+					$otp_secret = $this->otpsecret();
+
+					print "<fieldset>";
+					print "<label>".__("OTP Key:")."</label>";
+					print "<input dojoType='dijit.form.ValidationTextBox' disabled='disabled' value='$otp_secret' size='32'>";
+					print "</fieldset>";
 
 					print_hidden("op", "pref-prefs");
 					print_hidden("method", "otpenable");
@@ -490,8 +527,6 @@ class Pref_Prefs extends Handler_Protected {
 
 					print "</form>";
 
-				} else {
-					print_notice("PHP GD functions are required for OTP support.");
 				}
 			}
 
@@ -922,27 +957,41 @@ class Pref_Prefs extends Handler_Protected {
 		$_SESSION["prefs_show_advanced"] = !$_SESSION["prefs_show_advanced"];
 	}
 
-	function otpqrcode() {
-		require_once "lib/phpqrcode/phpqrcode.php";
-
-		$sth = $this->pdo->prepare("SELECT login,salt,otp_enabled
+	function otpsecret() {
+		$sth = $this->pdo->prepare("SELECT salt, otp_enabled
 			FROM ttrss_users
 			WHERE id = ?");
 		$sth->execute([$_SESSION['uid']]);
 
 		if ($row = $sth->fetch()) {
-
-			$base32 = new \OTPHP\Base32();
-
-			$login = $row["login"];
 			$otp_enabled = sql_bool_to_bool($row["otp_enabled"]);
 
 			if (!$otp_enabled) {
-				$secret = $base32->encode(sha1($row["salt"]));
+				$base32 = new \OTPHP\Base32();
+				$secret = $base32->encode(mb_substr(sha1($row["salt"]), 0, 12), false);
 
+				return $secret;
+			}
+		}
+
+		return false;
+	}
+
+	function otpqrcode() {
+		require_once "lib/phpqrcode/phpqrcode.php";
+
+		$sth = $this->pdo->prepare("SELECT login
+			FROM ttrss_users
+			WHERE id = ?");
+		$sth->execute([$_SESSION['uid']]);
+
+		if ($row = $sth->fetch()) {
+			$secret = $this->otpsecret();
+			$login = $row['login'];
+
+			if ($secret) {
 				QRcode::png("otpauth://totp/".urlencode($login).
 					"?secret=$secret&issuer=".urlencode("Tiny Tiny RSS"));
-
 			}
 		}
 	}
@@ -956,16 +1005,12 @@ class Pref_Prefs extends Handler_Protected {
 
 		if ($authenticator->check_password($_SESSION["uid"], $password)) {
 
-			$sth = $this->pdo->prepare("SELECT salt
-				FROM ttrss_users
-				WHERE id = ?");
-			$sth->execute([$_SESSION['uid']]);
+			$secret = $this->otpsecret();
 
-			if ($row = $sth->fetch()) {
+			if ($secret) {
 
 				$base32 = new \OTPHP\Base32();
 
-				$secret = $base32->encode(sha1($row["salt"]));
 				$topt = new \OTPHP\TOTP($secret);
 
 				$otp_check = $topt->now();
@@ -1190,5 +1235,88 @@ class Pref_Prefs extends Handler_Protected {
 			return $this->pref_help[$pref_name][1];
 		}
 		return "";
+	}
+
+	private function appPasswordList() {
+		print "<div dojoType='fox.Toolbar'>";
+		print "<div dojoType='fox.form.DropDownButton'>" .
+			"<span>" . __('Select') . "</span>";
+		print "<div dojoType='dijit.Menu' style='display: none'>";
+		print "<div onclick=\"Tables.select('app-password-list', true)\"
+				dojoType=\"dijit.MenuItem\">" . __('All') . "</div>";
+		print "<div onclick=\"Tables.select('app-password-list', false)\"
+				dojoType=\"dijit.MenuItem\">" . __('None') . "</div>";
+		print "</div></div>";
+		print "</div>"; #toolbar
+
+		print "<div class='panel panel-scrollable'>";
+		print "<table width='100%' id='app-password-list'>";
+		print "<tr>";
+		print "<th width='2%'></th>";
+		print "<th align='left'>".__("Description")."</th>";
+		print "<th align='right'>".__("Created")."</th>";
+		print "<th align='right'>".__("Last used")."</th>";
+		print "</tr>";
+
+		$sth = $this->pdo->prepare("SELECT id, title, created, last_used
+			FROM ttrss_app_passwords WHERE owner_uid = ?");
+		$sth->execute([$_SESSION['uid']]);
+
+		while ($row = $sth->fetch()) {
+
+			$row_id = $row["id"];
+
+			print "<tr data-row-id='$row_id'>";
+
+			print "<td align='center'>
+						<input onclick='Tables.onRowChecked(this)' dojoType='dijit.form.CheckBox' type='checkbox'></td>";
+			print "<td>" . htmlspecialchars($row["title"]) . "</td>";
+
+			print "<td align='right' class='text-muted'>";
+			print make_local_datetime($row['created'], false);
+			print "</td>";
+
+			print "<td align='right' class='text-muted'>";
+			print make_local_datetime($row['last_used'], false);
+			print "</td>";
+
+			print "</tr>";
+		}
+
+		print "</table>";
+		print "</div>";
+	}
+
+	private function encryptAppPassword($password) {
+		$salt = substr(bin2hex(get_random_bytes(24)), 0, 24);
+
+		return "SSHA-512:".hash('sha512', $salt . $password). ":$salt";
+	}
+
+	function deleteAppPassword() {
+		$ids = explode(",", clean($_REQUEST['ids']));
+		$ids_qmarks = arr_qmarks($ids);
+
+		$sth = $this->pdo->prepare("DELETE FROM ttrss_app_passwords WHERE id IN ($ids_qmarks) AND owner_uid = ?");
+		$sth->execute(array_merge($ids, [$_SESSION['uid']]));
+
+		$this->appPasswordList();
+	}
+
+	function generateAppPassword() {
+		$title = clean($_REQUEST['title']);
+		$new_password = make_password(16);
+		$new_password_hash = $this->encryptAppPassword($new_password);
+
+		print_warning(T_sprintf("Generated password <strong>%s</strong> for %s. Please remember it for future reference.", $new_password, $title));
+
+		$sth = $this->pdo->prepare("INSERT INTO ttrss_app_passwords
+    			(title, pwd_hash, service, created, owner_uid)
+    		 VALUES
+    		    (?, ?, ?, NOW(), ?)");
+
+		$sth->execute([$title, $new_password_hash, Auth_Base::AUTH_SERVICE_API, $_SESSION['uid']]);
+
+		$this->appPasswordList();
 	}
 }
