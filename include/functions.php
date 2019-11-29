@@ -281,9 +281,6 @@
                         curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
                         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-                        curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
-                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
 			if ($max_size) {
 				curl_setopt($ch, CURLOPT_NOPROGRESS, false);
 				curl_setopt($ch, CURLOPT_BUFFERSIZE, 16384); // needed to get 5 arguments in progress function?
@@ -1256,13 +1253,11 @@
 	}
 
 	function iframe_whitelisted($entry) {
-		$whitelist = array("youtube.com", "youtu.be", "vimeo.com", "player.vimeo.com");
-
 		@$src = parse_url($entry->getAttribute("src"), PHP_URL_HOST);
 
 		if ($src) {
-			foreach ($whitelist as $w) {
-				if ($src == $w || $src == "www.$w")
+			foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_IFRAME_WHITELISTED) as $plugin) {
+				if ($plugin->hook_iframe_whitelisted($src))
 					return true;
 			}
 		}
