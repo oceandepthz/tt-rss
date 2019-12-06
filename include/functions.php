@@ -563,7 +563,6 @@
 				session_regenerate_id(true);
 
 				$_SESSION["uid"] = $user_id;
-				$_SESSION["version"] = VERSION_STATIC;
 				$_SESSION["auth_module"] = $auth_module;
 
 				$pdo = DB::pdo();
@@ -1118,14 +1117,16 @@
 			"j" => "prev_feed",
 			"n" => "next_article",
 			"p" => "prev_article",
+			"(33)|PageUp" => "prev_article_page",
+			"(34)|PageDown" => "next_article_page",
 			"(38)|Up" => "prev_article",
 			"(40)|Down" => "next_article",
 			"*(38)|Shift+Up" => "article_scroll_up",
 			"*(40)|Shift+Down" => "article_scroll_down",
 			"^(38)|Ctrl+Up" => "prev_article_noscroll",
 			"^(40)|Ctrl+Down" => "next_article_noscroll",
-			"(33)|Page Up" => "article_page_up",
-			"(34)|Page Down" => "article_page_down",
+			"^(33)|Shift+PageUp" => "article_page_up",
+			"^(34)|Shift+PageDown" => "article_page_down",
 			"/" => "search_dialog",
 			"s" => "toggle_mark",
 			"S" => "toggle_publ",
