@@ -118,6 +118,11 @@ class Pref_Prefs extends Handler_Protected {
 
 	function changepassword() {
 
+		if (defined('_TTRSS_DEMO_INSTANCE')) {
+			print "ERROR: ".format_error("Disabled in demo version.");
+			return;
+		}
+
 		$old_pw = clean($_POST["old_password"]);
 		$new_pw = clean($_POST["new_password"]);
 		$con_pw = clean($_POST["confirm_password"]);
@@ -1132,12 +1137,18 @@ class Pref_Prefs extends Handler_Protected {
 		print_hidden("method", "setpref");
 		print_hidden("key", "USER_STYLESHEET");
 
+		print "<div id='css_edit_apply_msg' style='display : none'>";
+		print_warning(__("User CSS has been applied, you might need to reload the page to see all changes."));
+		print "</div>";
+
 		print "<textarea class='panel user-css-editor' dojoType='dijit.form.SimpleTextarea'
 			style='font-size : 12px;' name='value'>$value</textarea>";
 
 		print "<footer>";
-		print "<button dojoType='dijit.form.Button'
-			onclick=\"dijit.byId('cssEditDlg').execute()\">".__('Save')."</button> ";
+		print "<button dojoType='dijit.form.Button' class='alt-success'
+			onclick=\"dijit.byId('cssEditDlg').apply()\">".__('Apply')."</button> ";
+		print "<button dojoType='dijit.form.Button' class='alt-primary'
+			onclick=\"dijit.byId('cssEditDlg').execute()\">".__('Save and reload')."</button> ";
 		print "<button dojoType='dijit.form.Button'
 			onclick=\"dijit.byId('cssEditDlg').hide()\">".__('Cancel')."</button>";
 		print "</footer>";
