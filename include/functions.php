@@ -1104,7 +1104,6 @@
 				"create_label" => __("Create label"),
 				"create_filter" => __("Create filter"),
 				"collapse_sidebar" => __("Un/collapse sidebar"),
-				"toggle_night_mode" => __("Toggle night mode"),
 				"help_dialog" => __("Show help dialog"))
 		);
 
@@ -1175,7 +1174,6 @@
 			"c l" => "create_label",
 			"c f" => "create_filter",
 			"c s" => "collapse_sidebar",
-			"a N" => "toggle_night_mode",
 			"?" => "help_dialog",
 		);
 
