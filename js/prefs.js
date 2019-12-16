@@ -63,19 +63,21 @@ require(["dojo/_base/kernel",
 		try {
 			const _App = declare("fox.App", AppBase, {
 				constructor: function() {
-					parser.parse();
+					this.setupNightModeDetection(() => {
+						parser.parse();
 
-					this.setLoadingProgress(50);
+						this.setLoadingProgress(50);
 
-					const clientTzOffset = new Date().getTimezoneOffset() * 60;
-					const params = {op: "rpc", method: "sanityCheck", clientTzOffset: clientTzOffset};
+						const clientTzOffset = new Date().getTimezoneOffset() * 60;
+						const params = {op: "rpc", method: "sanityCheck", clientTzOffset: clientTzOffset};
 
-					xhrPost("backend.php", params, (transport) => {
-						try {
-							this.backendSanityCallback(transport);
-						} catch (e) {
-							this.Error.report(e);
-						}
+						xhrPost("backend.php", params, (transport) => {
+							try {
+								this.backendSanityCallback(transport);
+							} catch (e) {
+								this.Error.report(e);
+							}
+						});
 					});
 				},
 				initSecondStage: function() {
@@ -155,7 +157,10 @@ require(["dojo/_base/kernel",
 			App = new _App();
 
 		} catch (e) {
-			this.Error.report(e);
+			if (App && App.Error)
+				App.Error.report(e);
+			else
+				alert(e + "\n\n" + e.stack);
 		}
 	});
 });
