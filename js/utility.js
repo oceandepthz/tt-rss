@@ -1,3 +1,5 @@
+/* TODO: this should probably be something like night_mode.js since it does nothing specific to utility scripts */2
+
 Event.observe(window, "load", function() {
     const UtilityJS = {
         apply_night_mode: function (is_night, link) {
@@ -19,6 +21,9 @@ Event.observe(window, "load", function() {
 
             link.onload = function() {
                 document.querySelector("body").removeClassName("css_loading");
+
+                if (typeof UtilityApp != "undefined")
+                    UtilityApp.init();
             };
 
             try {
