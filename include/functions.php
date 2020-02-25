@@ -1285,6 +1285,7 @@
 
 			if ($entry->nodeName == 'img') {
 				$entry->setAttribute('referrerpolicy', 'no-referrer');
+				$entry->setAttribute('loading', 'lazy');
 
 				$entry->removeAttribute('width');
 				$entry->removeAttribute('height');
@@ -1756,9 +1757,6 @@
 	}
 
 	function get_theme_path($theme) {
-		if ($theme == "default.php")
-			return "css/default.css";
-
 		$check = "themes/$theme";
 		if (file_exists($check)) return $check;
 
