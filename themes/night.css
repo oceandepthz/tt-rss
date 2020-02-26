@@ -1578,7 +1578,7 @@ body.ttrss_prefs .prefErrorLog tr .timestamp {
   color: #ccc;
 }
 body.ttrss_prefs hr {
-  border-color: #ecf4ff;
+  border-color: #222;
   max-width: 100%;
 }
 body.ttrss_prefs .phpinfo table {
@@ -2008,6 +2008,9 @@ body.flat.ttrss_main #feeds-holder #feedTree .dijitTreeRowSelected {
 body.flat.ttrss_main #feeds-holder #feedTree .dijitTreeRowSelected .dijitTreeLabel {
   text-shadow: none;
 }
+body.flat.ttrss_main #feeds-holder #feedTree i.icon.icon-inbox {
+  color: #999999;
+}
 body.flat.ttrss_main #floatingTitle {
   background-color: #333;
 }
@@ -2178,5 +2181,8 @@ body.flat.ttrss_main ::-webkit-scrollbar-track {
 body.flat.ttrss_main .alert {
   background: #222;
   border-color: #664518;
+}
+body.ttrss_prefs hr {
+  border-color: #666;
 }
 /*# sourceMappingURL=night.css.map */
