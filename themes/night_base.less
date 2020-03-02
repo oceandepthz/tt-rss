@@ -1,6 +1,6 @@
-@import "../css/defines.less";
-@import "../css/utility.less";
-@import "../css/zoom.less";
+@import "light/defines.less";
+@import "light/utility.less";
+@import "light/zoom.less";
 @import "../lib/flat-ttrss/flat_combined_dark.css";
 
 @color-accent: #b87d2c;
@@ -20,6 +20,8 @@
 @color-alert-info : #3a87ad;
 @color-alert-danger : #b94a48;
 
+@color-tooltip-bg : lighten(@color-accent, 10%);
+
 body.flat.ttrss_main.ttrss_prefs {
 	#main, #footer {
 		background: @color-panel-bg;
@@ -34,13 +36,8 @@ body.flat.ttrss_main.ttrss_prefs {
 		color : @fg-text-muted;
 	}
 
-	#filterNewRuleDlg {
-		.invalid {
-			background : #503030;
-		}
-		.valid {
-			background : #305030;
-		}
+	hr {
+		border-color : @border-light;
 	}
 }
 
@@ -340,10 +337,12 @@ body.flat.ttrss_main {
 		border-color : darken(@color-alert-danger, 20%);
 	}
 
-}
-
-body.ttrss_prefs {
-	hr {
-		border-color : @border-light;
+	#filterNewRuleDlg {
+		.dijitValidationTextAreaError {
+			background : #503030;
+		}
+		.dijitValidationTextArea:not(.dijitValidationTextAreaError) {
+			background : #305030;
+		}
 	}
 }

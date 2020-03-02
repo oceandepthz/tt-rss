@@ -56,6 +56,7 @@ require(["dojo/_base/kernel",
 	"fox/FeedStoreModel",
 	"fox/FeedTree",
 	"fox/Toolbar",
+	"fox/form/ValidationTextArea",
 	"fox/form/Select",
 	"fox/form/ComboButton",
 	"fox/form/DropDownButton"], function (dojo, declare, ready, parser, AppBase) {
@@ -476,7 +477,7 @@ require(["dojo/_base/kernel",
 					this.hotkey_actions["collapse_sidebar"] = function () {
 						Feeds.toggle();
 					};
-					this.hotkey_actions["embed_full_text"] = function () {
+					this.hotkey_actions["toggle_full_text"] = function () {
 						if (typeof Plugins.Af_Readability != "undefined") {
 							if (Article.getActive())
 								Plugins.Af_Readability.embed(Article.getActive());
