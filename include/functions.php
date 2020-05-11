@@ -1038,7 +1038,8 @@
 				"prev_article_noscroll" => __("Open previous article"),
 				"next_article_noexpand" => __("Move to next article (don't expand)"),
 				"prev_article_noexpand" => __("Move to previous article (don't expand)"),
-				"search_dialog" => __("Show search dialog")),
+				"search_dialog" => __("Show search dialog"),
+				"cancel_search" => __("Cancel active search")),
 			__("Article") => array(
 				"toggle_mark" => __("Toggle starred"),
 				"toggle_publ" => __("Toggle published"),
@@ -1117,6 +1118,7 @@
 			"^(38)|Ctrl+Up" => "prev_article_noscroll",
 			"^(40)|Ctrl+Down" => "next_article_noscroll",
 			"/" => "search_dialog",
+			"\\" => "cancel_search",
 			"s" => "toggle_mark",
 			"S" => "toggle_publ",
 			"u" => "toggle_unread",
@@ -1358,7 +1360,7 @@
 
 		if ($_SESSION['hasSandbox']) $allowed_elements[] = 'iframe';
 
-//		$disallowed_attributes = array('id', 'style', 'class', 'width', 'height');
+		$disallowed_attributes = array('id', 'style', 'class', 'width', 'height', 'allow');
 		$disallowed_attributes = [];
                 array_push($allowed_elements, 'newselement', 'style', 'svg', 'rb', 'lazy-image');
 
