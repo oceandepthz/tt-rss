@@ -139,7 +139,7 @@ define(["dojo/_base/declare"], function (declare) {
 			c.attr('content', article);
 			PluginHost.run(PluginHost.HOOK_ARTICLE_RENDERED, c.domNode);
 
-			Headlines.correctHeadlinesOffset(Article.getActive());
+			//Headlines.correctHeadlinesOffset(Article.getActive());
 
 			try {
 				c.focus();
@@ -198,6 +198,7 @@ define(["dojo/_base/declare"], function (declare) {
 		},
 		view: function (id, noexpand) {
 			this.setActive(id);
+			Headlines.scrollToArticleId(id);
 
 			if (!noexpand) {
 				const hl = Headlines.objectById(id);
@@ -322,22 +323,24 @@ define(["dojo/_base/declare"], function (declare) {
 			}
 		},
 		setActive: function (id) {
-			console.log("setActive", id);
+			if (id != Article.getActive()) {
+				console.log("setActive", id, "was", Article.getActive());
 
-			$$("div[id*=RROW][class*=active]").each((row) => {
-				row.removeClassName("active");
-				Article.pack(row);
-			});
+				$$("div[id*=RROW][class*=active]").each((row) => {
+					row.removeClassName("active");
+					Article.pack(row);
+				});
 
-			const row = $("RROW-" + id);
+				const row = $("RROW-" + id);
 
-			if (row) {
-				Article.unpack(row);
+				if (row) {
+					Article.unpack(row);
 
-				row.removeClassName("Unread");
-				row.addClassName("active");
+					row.removeClassName("Unread");
+					row.addClassName("active");
 
-				PluginHost.run(PluginHost.HOOK_ARTICLE_SET_ACTIVE, row.getAttribute("data-article-id"));
+					PluginHost.run(PluginHost.HOOK_ARTICLE_SET_ACTIVE, row.getAttribute("data-article-id"));
+				}
 			}
 		},
 		getActive: function () {
@@ -349,29 +352,10 @@ define(["dojo/_base/declare"], function (declare) {
 				return 0;
 		},
 		scrollByPages: function (page_offset, event) {
-			const elem = App.isCombinedMode() ? $("headlines-frame") : $("content-insert");
-
-			const offset = elem.offsetHeight * page_offset * 0.99;
-
-			this.scroll(offset, event);
+			App.Scrollable.scrollByPages($("content-insert"), page_offset, event);
 		},
 		scroll: function (offset, event) {
-
-			const elem = App.isCombinedMode() ? $("headlines-frame") : $("content-insert");
-
-			if (event && event.repeat) {
-				elem.addClassName("forbid-smooth-scroll");
-				window.clearTimeout(this._scroll_reset_timeout);
-
-				this._scroll_reset_timeout = window.setTimeout(() => {
-					if (elem) elem.removeClassName("forbid-smooth-scroll");
-				}, 250)
-
-			} else {
-				elem.removeClassName("forbid-smooth-scroll");
-			}
-
-			elem.scrollTop += offset;
+			App.Scrollable.scroll($("content-insert"), offset, event);
 		},
 		mouseIn: function (id) {
 			this.post_under_pointer = id;
