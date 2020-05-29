@@ -8,28 +8,16 @@ define(["dojo/_base/declare"], function (declare) {
 		hotkey_prefix_pressed: false,
 		hotkey_prefix_timeout: 0,
 		Scrollable: {
-			scrollByPages: function (elem, page_offset, event) {
+			scrollByPages: function (elem, page_offset) {
 				if (!elem) return;
 
 				/* keep a line or so from the previous page  */
 				const offset = (elem.offsetHeight - (page_offset > 0 ? 50 : -50)) * page_offset;
 
-				this.scroll(elem, offset, event);
+				this.scroll(elem, offset);
 			},
-			scroll: function(elem, offset, event) {
+			scroll: function(elem, offset) {
 				if (!elem) return;
-
-				if (event && event.repeat) {
-					elem.addClassName("forbid-smooth-scroll");
-					window.clearTimeout(this._scroll_reset_timeout);
-
-					this._scroll_reset_timeout = window.setTimeout(() => {
-						if (elem) elem.removeClassName("forbid-smooth-scroll");
-					}, 250)
-
-				} else {
-					elem.removeClassName("forbid-smooth-scroll");
-				}
 
 				elem.scrollTop += offset;
 			},
@@ -45,6 +33,12 @@ define(["dojo/_base/declare"], function (declare) {
 				return etop >= ctop && ebottom <= cbottom ||
 					etop < ctop && ebottom > ctop || ebottom > cbottom && etop < cbottom;
 			},
+			fitsInContainer: function (elem, ctr) {
+				if (!elem) return;
+
+				return elem.offsetTop + elem.offsetHeight <= ctr.scrollTop + ctr.offsetHeight &&
+					elem.offsetTop >= ctr.scrollTop;
+			}
 		},
 		constructor: function() {
 			window.onerror = this.Error.onWindowError;
@@ -140,6 +134,17 @@ define(["dojo/_base/declare"], function (declare) {
 			}
 
 		},
+		getActionByHotkeySequence: function (sequence) {
+			const hotkeys_map = App.getInitParam("hotkeys");
+
+			for (const seq in hotkeys_map[1]) {
+				if (hotkeys_map[1].hasOwnProperty(seq)) {
+					if (seq == sequence) {
+						return hotkeys_map[1][seq];
+					}
+				}
+			}
+		},
 		keyeventToAction: function(event) {
 
 			const hotkeys_map = App.getInitParam("hotkeys");
@@ -183,18 +188,16 @@ define(["dojo/_base/declare"], function (declare) {
 				hotkey_name = keychar ? keychar : "(" + keycode + ")";
 			}
 
-			const hotkey_full = this.hotkey_prefix ? this.hotkey_prefix + " " + hotkey_name : hotkey_name;
+			let hotkey_full = this.hotkey_prefix ? this.hotkey_prefix + " " + hotkey_name : hotkey_name;
 			this.hotkey_prefix = false;
 
-			let action_name = false;
+			let action_name = this.getActionByHotkeySequence(hotkey_full);
 
-			for (const sequence in hotkeys_map[1]) {
-				if (hotkeys_map[1].hasOwnProperty(sequence)) {
-					if (sequence == hotkey_full) {
-						action_name = hotkeys_map[1][sequence];
-						break;
-					}
-				}
+			// check for mode-specific hotkey
+			if (!action_name) {
+				hotkey_full = (App.isCombinedMode() ? "{C}" : "{3}") + hotkey_full;
+
+				action_name = this.getActionByHotkeySequence(hotkey_full);
 			}
 
 			console.log('keyeventToAction', hotkey_full, '=>', action_name);
