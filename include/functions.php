@@ -1426,7 +1426,10 @@
 		$entries = $xpath->query('//*');
 
 		foreach ($entries as $entry) {
-			if (!in_array($entry->nodeName, $allowed_elements)) {
+                        $in_array_nodeName = in_array($entry->nodeName, $allowed_elements);
+                        $is_amp = strpos($entry->nodeName, 'amp-') === 0;
+//			if (!in_array($entry->nodeName, $allowed_elements)) {
+			if (!$in_array_nodeName && !$is_amp) {
 				$entry->parentNode->removeChild($entry);
 			}
 
