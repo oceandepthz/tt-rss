@@ -184,6 +184,7 @@
 		global $fetch_last_content_type;
 		global $fetch_last_modified;
 		global $fetch_effective_url;
+		global $fetch_effective_ip_addr;
 		global $fetch_curl_used;
 		global $fetch_domain_hits;
 
@@ -194,6 +195,7 @@
 		$fetch_curl_used = false;
 		$fetch_last_modified = "";
 		$fetch_effective_url = "";
+		$fetch_effective_ip_addr = "";
 
 		if (!is_array($fetch_domain_hits))
 			$fetch_domain_hits = [];
@@ -240,7 +242,10 @@
 
 		$url = validate_url($url, true);
 
-		if (!$url) return false;
+		if (!$url) {
+			$fetch_last_error = "Requested URL failed extended validation.";
+			return false;
+		}
 
 		$url_host = parse_url($url, PHP_URL_HOST);
 		$ip_addr = gethostbyname($url_host);
@@ -354,7 +359,7 @@
 			$fetch_effective_url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
 
 			if (!validate_url($fetch_effective_url, true)) {
-				$fetch_last_error = "URL hostname received after redirection failed to validate.";
+				$fetch_last_error = "URL received after redirection failed extended validation.";
 
 				return false;
 			}
@@ -447,7 +452,7 @@
 			$fetch_effective_url = resolve_redirects($url, $timeout ? $timeout : FILE_FETCH_CONNECT_TIMEOUT);
 
 			if (!validate_url($fetch_effective_url, true)) {
-				$fetch_last_error = "URL hostname received after redirection failed to validate.";
+				$fetch_last_error = "URL received after redirection failed extended validation.";
 
 				return false;
 			}
@@ -717,7 +722,7 @@
 
 		if (!$pluginhost) $pluginhost = PluginHost::getInstance();
 
-		if ($owner_uid && SCHEMA_VERSION >= 100) {
+		if ($owner_uid && SCHEMA_VERSION >= 100 && !$_SESSION["safe_mode"]) {
 			$plugins = get_pref("_ENABLED_PLUGINS", $owner_uid);
 
 			$pluginhost->load($plugins, PluginHost::KIND_USER, $owner_uid);
@@ -1988,14 +1993,14 @@
 		if (!$tokens['host'])
 			return false;
 
-		if (!in_array($tokens['scheme'], ['http', 'https']))
+		if (!in_array(strtolower($tokens['scheme']), ['http', 'https']))
 			return false;
 
 		if ($extended_filtering) {
 			if (!in_array($tokens['port'], [80, 443, '']))
 				return false;
 
-			if ($tokens['host'] == 'localhost' || $tokens['host'] == '::1' || strpos($tokens['host'], '127.') === 0)
+			if (strtolower($tokens['host']) == 'localhost' || $tokens['host'] == '::1' || strpos($tokens['host'], '127.') === 0)
 				return false;
 		}
 
@@ -2016,23 +2021,28 @@
 		if ($nest > 10)
 			return false;
 
-		$context_options = array(
-			'http' => array(
-				 'header' => array(
-					 'Connection: close'
-				 ),
-				 'method' => 'HEAD',
-				 'timeout' => $timeout,
-				 'protocol_version'=> 1.1)
-			);
+		if (version_compare(PHP_VERSION, '7.1.0', '>=')) {
+			$context_options = array(
+				'http' => array(
+					 'header' => array(
+						 'Connection: close'
+					 ),
+					 'method' => 'HEAD',
+					 'timeout' => $timeout,
+					 'protocol_version'=> 1.1)
+				);
 
-		if (defined('_HTTP_PROXY')) {
-			$context_options['http']['request_fulluri'] = true;
-			$context_options['http']['proxy'] = _HTTP_PROXY;
+			if (defined('_HTTP_PROXY')) {
+				$context_options['http']['request_fulluri'] = true;
+				$context_options['http']['proxy'] = _HTTP_PROXY;
+			}
+
+			$context = stream_context_create($context_options);
+
+			$headers = get_headers($url, 0, $context);
+		} else {
+			$headers = get_headers($url, 0);
 		}
-
-		$context = stream_context_create($context_options);
-		$headers = get_headers($url, 0, $context);
 
 		if (is_array($headers)) {
 			$headers = array_reverse($headers); // last one is the correct one
