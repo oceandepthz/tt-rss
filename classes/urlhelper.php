@@ -218,10 +218,10 @@ class UrlHelper {
 		$url_host = parse_url($url, PHP_URL_HOST);
 		$ip_addr = gethostbyname($url_host);
 
-		if (!$ip_addr || strpos($ip_addr, "127.") === 0) {
+		/*if (!$ip_addr || strpos($ip_addr, "127.") === 0) {
 			$fetch_last_error = "URL hostname failed to resolve or resolved to a loopback address ($ip_addr)";
 			return false;
-		}
+		}*/
 
 		$fetch_domain_hits[$url_host] += 1;
 
@@ -331,11 +331,11 @@ class UrlHelper {
 
 			$fetch_effective_ip_addr = gethostbyname(parse_url($fetch_effective_url, PHP_URL_HOST));
 
-			if (!$fetch_effective_ip_addr || strpos($fetch_effective_ip_addr, "127.") === 0) {
+			/*if (!$fetch_effective_ip_addr || strpos($fetch_effective_ip_addr, "127.") === 0) {
 				$fetch_last_error = "URL hostname received after redirection failed to resolve or resolved to a loopback address ($fetch_effective_ip_addr)";
 
 				return false;
-			}
+			}*/
 
 			$fetch_last_error_code = $http_code;
 
@@ -424,11 +424,11 @@ class UrlHelper {
 
 			$fetch_effective_ip_addr = gethostbyname(parse_url($fetch_effective_url, PHP_URL_HOST));
 
-			if (!$fetch_effective_ip_addr || strpos($fetch_effective_ip_addr, "127.") === 0) {
+			/*if (!$fetch_effective_ip_addr || strpos($fetch_effective_ip_addr, "127.") === 0) {
 				$fetch_last_error = "URL hostname received after redirection failed to resolve or resolved to a loopback address ($fetch_effective_ip_addr)";
 
 				return false;
-			}
+			}*/
 
 			$data = @file_get_contents($url, false, $context);
 
