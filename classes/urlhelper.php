@@ -262,6 +262,9 @@ class UrlHelper {
 			if  ($http_referrer)
 				curl_setopt($ch, CURLOPT_REFERER, $http_referrer);
 
+                        curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
+                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
 			if ($max_size) {
 				curl_setopt($ch, CURLOPT_NOPROGRESS, false);
 				curl_setopt($ch, CURLOPT_BUFFERSIZE, 16384); // needed to get 5 arguments in progress function?
