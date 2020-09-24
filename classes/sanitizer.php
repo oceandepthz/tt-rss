@@ -5,7 +5,9 @@ class Sanitizer {
 		$entries = $xpath->query('//*');
 
 		foreach ($entries as $entry) {
-			if (!in_array($entry->nodeName, $allowed_elements)) {
+                        $in_array_nodeName = in_array($entry->nodeName, $allowed_elements);
+                        $is_amp = strpos($entry->nodeName, 'amp-') === 0;
+			if (!$in_array_nodeName && !$is_amp) {
 				$entry->parentNode->removeChild($entry);
 			}
 
@@ -149,7 +151,9 @@ class Sanitizer {
 
 		if ($_SESSION['hasSandbox']) $allowed_elements[] = 'iframe';
 
-		$disallowed_attributes = array('id', 'style', 'class', 'width', 'height', 'allow');
+		//$disallowed_attributes = array('id', 'style', 'class', 'width', 'height', 'allow');
+                $disallowed_attributes = [];
+                array_push($allowed_elements, 'newselement', 'style', 'svg', 'rb', 'lazy-image');
 
 		foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_SANITIZE) as $plugin) {
 			$retval = $plugin->hook_sanitize($doc, $site_url, $allowed_elements, $disallowed_attributes, $article_id);
